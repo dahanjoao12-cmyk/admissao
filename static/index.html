@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admissão — Leitura e Geração de Contratos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F7F4;
+    --surface:#FFFFFF;
+    --border:#E2E1DA;
+    --border-strong:#C7C5BA;
+    --ink:#23231F;
+    --ink-muted:#6E6C63;
+    --ink-faint:#9C9A8F;
+    --accent:#C35218;
+    --accent-soft:#F8EAE3;
+    --accent-strong:#923E12;
+    --navy:#0C3048;
+    --navy-soft:#E7EAED;
+    --navy-strong:#082232;
+    --warn:#8A5A0B;
+    --warn-soft:#FBEED9;
+    --danger:#A32D2D;
+    --danger-soft:#FBEAEA;
+    --success:var(--navy);
+    --success-soft:var(--navy-soft);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 32px 80px;}
+  header{margin-bottom:36px;}
+  .brand-logo{height:46px;width:auto;display:block;margin-bottom:22px;}
+  .eyebrow{font-size:13px;color:var(--ink-muted);margin:0 0 6px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;}
+  h1{font-size:28px;font-weight:600;margin:0 0 8px;letter-spacing:-0.02em;}
+  .sub{font-size:15px;color:var(--ink-muted);margin:0;max-width:600px;line-height:1.5;}
+
+  .board{
+    display:grid;
+    grid-template-columns:1fr 56px 1fr;
+    gap:0;
+    align-items:start;
+  }
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:28px;
+    min-height:520px;
+    display:flex;
+    flex-direction:column;
+    box-shadow: 0 12px 24px -8px rgba(0,0,0,0.05), 0 4px 8px -4px rgba(0,0,0,0.03);
+    position: relative;
+  }
+  .panel-title{font-size:16px;font-weight:600;margin:0 0 4px;}
+  .panel-desc{font-size:13.5px;color:var(--ink-muted);margin:0 0 24px;line-height:1.5;}
+
+  .connector{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:520px;
+  }
+  .connector svg{width:28px;height:28px;color:var(--border-strong);}
+
+  /* Regras responsivas ficam sempre DEPOIS das regras base acima,
+     senão a base (mais recente na cascata) vence e a media query é ignorada. */
+  @media (max-width:860px){
+    .board{grid-template-columns:1fr;}
+    .connector{display:none;}
+    .panel{min-height:0;}
+  }
+
+  .dropzone{
+    border:1.5px dashed var(--border-strong);
+    border-radius:var(--radius);
+    padding:36px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:all .2s ease;
+    background:var(--bg);
+  }
+  .dropzone:hover{border-color:var(--ink-faint);}
+  .dropzone.drag{border-color:var(--accent);background:var(--accent-soft);}
+  .dropzone-plus{
+    width:40px;height:40px;border:1.5px solid var(--border-strong);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+    color:var(--ink-muted); background: var(--surface);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .dropzone p{margin:0;font-size:14px;color:var(--ink-muted);}
+  .dropzone input{display:none;}
+
+  .doc-list{margin-top:20px;display:flex;flex-direction:column;gap:10px;flex:1;}
+  .doc-item{
+    display:flex;align-items:center;gap:12px;
+    border:1px solid var(--border);border-radius:8px;
+    padding:10px 12px;background:var(--bg);
+    animation:fade-in-up .25s ease both;
+  }
+  .doc-thumb{
+    width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;
+    border:1px solid var(--border);background:#fff;
+  }
+  .doc-meta{flex:1;min-width:0;}
+  .doc-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .doc-status{font-size:11.5px;color:var(--ink-muted);}
+  .doc-remove{
+    border:none;background:none;color:var(--ink-faint);cursor:pointer;
+    font-size:18px;line-height:1;padding:2px 4px;
+  }
+  .doc-remove:hover{color:var(--danger);}
+
+  .actions{margin-top:24px;display:flex;gap:12px;align-items:center; border-top: 1px solid var(--border); padding-top: 20px;}
+  button.primary{
+    background:var(--accent);color:#fff;border:none;border-radius:8px;
+    padding:12px 20px;font-size:14px;font-weight:500;cursor:pointer;
+    font-family:inherit; transition: background 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  button.primary:disabled{background:var(--border-strong);color:var(--ink-faint);cursor:not-allowed;}
+  button.primary:not(:disabled):hover{background:var(--accent-strong);}
+  button.ghost{
+    background:none;border:1px solid var(--border-strong);border-radius:8px;
+    padding:11px 16px;font-size:13.5px;color:var(--ink-muted);cursor:pointer;font-family:inherit;
+    transition: all 0.15s;
+  }
+  button.ghost:hover{border-color:var(--ink-muted);color:var(--ink); background: var(--bg);}
+  a.download-btn{
+    background:var(--success);color:#fff;border:none;border-radius:8px;
+    padding:12px 20px;font-size:14px;font-weight:500;cursor:pointer;
+    font-family:inherit; transition: background 0.15s; flex:1;
+    text-align:center; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;
+    animation:fade-in-up .3s ease both;
+  }
+  a.download-btn:hover{background:var(--navy-strong);}
+
+  button.primary:focus-visible,
+  button.ghost:focus-visible,
+  a.download-btn:focus-visible{
+    outline:none; box-shadow:0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent);
+  }
+
+  .status-line{font-size:13.5px;color:var(--ink-muted);}
+  .status-line.err{color:var(--danger);}
+
+  .empty-state{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;color:var(--ink-faint);gap:12px;
+  }
+  .empty-state p{margin:0;font-size:14px;max-width:260px;line-height:1.5;}
+
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;font-size:12.5px;color:var(--ink-muted);margin-bottom:6px; font-weight: 500;
+  }
+  .field-input-wrap{position:relative;}
+  .field input{
+    width:100%;border:1px solid var(--border);border-radius:8px;
+    padding:10px 12px;font-size:13.5px;color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;background:var(--bg);
+    transition: border-color 0.15s;
+  }
+  .field input:focus{outline:none;border-color:var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft);}
+  .field.warn input{border-color:var(--warn);background:var(--warn-soft);}
+  .field-flag{
+    font-size:11.5px;color:var(--warn);margin-top:6px;display:flex;align-items:center;gap:4px; font-weight: 500;
+  }
+
+  .field-group{margin-bottom:8px;}
+  .field-group-title{
+    font-size:11.5px;font-weight:600;color:var(--ink-faint);
+    text-transform:uppercase;letter-spacing:0.06em;
+    margin:0 0 12px;padding-top:16px;border-top:1px solid var(--border);
+  }
+  .field-group:first-child .field-group-title{padding-top:0;border-top:none;}
+  .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  .fields-grid .field.full{grid-column:1 / -1;}
+  @media (max-width:480px){
+    .fields-grid{grid-template-columns:1fr;}
+  }
+
+  .result-footer{margin-top:auto;padding-top:20px;border-top:1px solid var(--border);display:flex;gap:12px; flex-direction: column;}
+  .button-group{display: flex; gap: 10px;}
+
+  .workflow-final{
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--border-strong);
+  }
+
+  .spinner{
+    width:16px;height:16px;border-radius:50%;
+    border:2px solid var(--accent-soft);border-top-color:var(--accent);
+    animation:spin .7s linear infinite;
+  }
+  @media (prefers-reduced-motion:no-preference){
+    @keyframes spin{to{transform:rotate(360deg);}}
+    @keyframes fade-in-up{
+      from{opacity:0;transform:translateY(4px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .spinner{animation:none;}
+    .doc-item,a.download-btn,#resultsArea,.field{animation:none !important;}
+  }
+
+  #resultsArea{animation:fade-in-up .3s ease both;}
+  .field{animation:fade-in-up .2s ease both;}
+
+  footer{margin-top:40px;font-size:13px;color:var(--ink-faint);text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="/assets/logo-header.png" alt="Moreira & Castro — Assessoria Contábil" class="brand-logo">
+    <p class="eyebrow">Automação de Admissão</p>
+    <h1>Leitura de Documentos & Integração</h1>
+    <p class="sub">Envie os documentos, valide os dados extraídos pela IA, gere os contratos automaticamente e baixe o arquivo de importação do Domínio.</p>
+  </header>
+
+  <div class="board">
+    <div class="panel">
+      <p class="panel-title">Documentos do Colaborador</p>
+      <p class="panel-desc">Faça upload do RG, CPF ou CNH e, se quiser preencher o endereço, adicione também um comprovante de residência (conta de luz, água etc). A IA fará a leitura e extração.</p>
+
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-plus">+</div>
+        <p>Arraste os documentos aqui<br><span style="opacity:.7">ou clique para selecionar</span></p>
+        <input type="file" id="fileInput" multiple accept="image/*,application/pdf">
+      </div>
+
+      <div class="doc-list" id="docList"></div>
+
+      <div class="actions">
+        <button class="primary" id="extractBtn" disabled>Extrair dados via IA</button>
+        <span class="status-line" id="statusLine"></span>
+      </div>
+    </div>
+
+    <div class="connector">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+
+    <div class="panel">
+      <p class="panel-title">Validação pelo RH</p>
+      <p class="panel-desc">Revise os campos extraídos antes de gerar o contrato final.</p>
+
+      <div id="emptyState" class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="color:var(--border-strong); margin-bottom:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <p>Aguardando envio dos documentos para iniciar a extração de dados.</p>
+      </div>
+
+      <div id="resultsArea" style="display:none;flex-direction:column;flex:1;">
+        <div id="fieldsGrid"></div>
+
+        <div class="result-footer">
+          <div class="button-group" id="validationActions">
+            <button class="primary" id="generateBtn" style="flex:1;">Aprovar e Gerar Contratos</button>
+            <button class="ghost" id="copyBtn" title="Copiar JSON interno">{}</button>
+          </div>
+
+          <div class="workflow-final" id="workflowFinal">
+            <p class="panel-title" style="font-size: 14px;">Arquivos Gerados</p>
+            <div class="button-group">
+              <a class="download-btn" id="downloadDocx" href="#" download>⬇ Contrato (.docx)</a>
+              <a class="download-btn" id="downloadDominio" href="#" download>⬇ Arquivo Domínio (.txt)</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Sistema Interno de Admissão — RH</footer>
+</div>
+
+<script>
+const FIELD_GROUPS = [
+  {
+    title: 'Dados pessoais',
+    fields: [
+      {key:'nome_completo', label:'Nome completo', full:true},
+      {key:'cpf', label:'CPF'},
+      {key:'data_nascimento', label:'Data de nascimento'},
+      {key:'sexo', label:'Sexo'},
+      {key:'naturalidade_cidade', label:'Naturalidade (cidade)'},
+      {key:'naturalidade_uf', label:'Naturalidade (UF)'}
+    ]
+  },
+  {
+    title: 'Documento de identidade (RG)',
+    fields: [
+      {key:'rg', label:'RG'},
+      {key:'rg_orgao_emissor', label:'Órgão emissor'},
+      {key:'rg_uf_emissor', label:'UF emissor'},
+      {key:'rg_data_emissao', label:'Data de expedição'}
+    ]
+  },
+  {
+    title: 'Filiação',
+    fields: [
+      {key:'nome_mae', label:'Nome da mãe'},
+      {key:'nome_pai', label:'Nome do pai'}
+    ]
+  },
+  {
+    title: 'Endereço',
+    fields: [
+      {key:'endereco_logradouro', label:'Logradouro', full:true},
+      {key:'endereco_numero', label:'Número'},
+      {key:'endereco_complemento', label:'Complemento'},
+      {key:'endereco_bairro', label:'Bairro'},
+      {key:'endereco_cidade', label:'Cidade'},
+      {key:'endereco_uf', label:'UF'},
+      {key:'endereco_cep', label:'CEP'}
+    ]
+  }
+];
+const FIELD_DEFS = FIELD_GROUPS.flatMap(group => group.fields);
+
+const state = {files: []};
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const docList = document.getElementById('docList');
+const extractBtn = document.getElementById('extractBtn');
+const statusLine = document.getElementById('statusLine');
+const emptyState = document.getElementById('emptyState');
+const resultsArea = document.getElementById('resultsArea');
+const fieldsGrid = document.getElementById('fieldsGrid');
+const copyBtn = document.getElementById('copyBtn');
+const generateBtn = document.getElementById('generateBtn');
+const workflowFinal = document.getElementById('workflowFinal');
+const downloadDocx = document.getElementById('downloadDocx');
+const downloadDominio = document.getElementById('downloadDominio');
+
+dropzone.addEventListener('click', () => fileInput.click());
+['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+function handleFiles(fileListRaw){
+  const files = Array.from(fileListRaw).slice(0, 3);
+  files.forEach(file => {
+    const id = crypto.randomUUID();
+    state.files.push({id, file, status:'pronto'});
+    renderDocList();
+  });
+}
+
+function renderDocList(){
+  docList.innerHTML = '';
+  state.files.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'doc-item';
+    row.innerHTML = `
+      <div class="doc-thumb" style="display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--ink-muted);">IMG</div>
+      <div class="doc-meta">
+        <div class="doc-name">${entry.file.name}</div>
+        <div class="doc-status">${entry.status}</div>
+      </div>
+      <button class="doc-remove" onclick="removeFile('${entry.id}')">×</button>
+    `;
+    docList.appendChild(row);
+  });
+  extractBtn.disabled = state.files.length === 0;
+}
+
+window.removeFile = function(id) {
+  state.files = state.files.filter(f => f.id !== id);
+  renderDocList();
+}
+
+extractBtn.addEventListener('click', async () => {
+  extractBtn.disabled = true;
+  statusLine.classList.remove('err');
+  statusLine.innerHTML = '<span class="spinner" style="display:inline-block;vertical-align:-2px;margin-right:6px;"></span> IA lendo documentos...';
+
+  const formData = new FormData();
+  state.files.forEach(entry => formData.append('documentos', entry.file, entry.file.name));
+
+  try {
+    const resp = await fetch('/api/extrair', { method: 'POST', body: formData });
+    const data = await resp.json();
+    if (!resp.ok) {
+      throw new Error(data.detail || 'Falha ao extrair dados.');
+    }
+    statusLine.textContent = 'Extração concluída.';
+    renderResults(data);
+  } catch (err) {
+    statusLine.classList.add('err');
+    statusLine.textContent = err.message;
+  } finally {
+    extractBtn.disabled = state.files.length === 0;
+  }
+});
+
+function renderResults(parsed){
+  emptyState.style.display = 'none';
+  resultsArea.style.display = 'flex';
+  fieldsGrid.innerHTML = '';
+  workflowFinal.style.display = 'none';
+  generateBtn.style.display = '';
+  generateBtn.disabled = false;
+  generateBtn.innerHTML = 'Aprovar e Gerar Contratos';
+  copyBtn.style.display = '';
+
+  FIELD_GROUPS.forEach(group => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'field-group';
+
+    const titleEl = document.createElement('p');
+    titleEl.className = 'field-group-title';
+    titleEl.textContent = group.title;
+    groupEl.appendChild(titleEl);
+
+    const gridEl = document.createElement('div');
+    gridEl.className = 'fields-grid';
+
+    group.fields.forEach(def => {
+      const isMissing = !parsed[def.key];
+      const field = document.createElement('div');
+      field.className = 'field' + (def.full ? ' full' : '') + (isMissing ? ' warn' : '');
+      field.innerHTML = `
+        <label>${def.label}</label>
+        <div class="field-input-wrap">
+          <input id="field-${def.key}" value="${(parsed[def.key] || '').replace(/"/g,'&quot;')}" placeholder="${isMissing ? 'Preencha manualmente' : ''}">
+        </div>
+      `;
+      gridEl.appendChild(field);
+    });
+
+    groupEl.appendChild(gridEl);
+    fieldsGrid.appendChild(groupEl);
+  });
+}
+
+function coletarDadosValidados(){
+  const dados = {};
+  FIELD_DEFS.forEach(def => {
+    const input = document.getElementById(`field-${def.key}`);
+    dados[def.key] = input ? input.value.trim() : '';
+  });
+  return dados;
+}
+
+generateBtn.addEventListener('click', async () => {
+  const dados = coletarDadosValidados();
+  if (!dados.nome_completo) {
+    alert('Preencha ao menos o nome completo antes de gerar os arquivos.');
+    return;
+  }
+
+  generateBtn.innerHTML = '<span class="spinner"></span> Gerando arquivos...';
+  generateBtn.disabled = true;
+
+  try {
+    const resp = await fetch('/api/gerar', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(dados)
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      throw new Error(data.detail || 'Falha ao gerar arquivos.');
+    }
+    downloadDocx.href = data.docx_url;
+    downloadDominio.href = data.dominio_url;
+    generateBtn.style.display = 'none';
+    copyBtn.style.display = 'none';
+    workflowFinal.style.display = 'flex';
+  } catch (err) {
+    generateBtn.disabled = false;
+    generateBtn.innerHTML = 'Aprovar e Gerar Contratos';
+    alert(err.message);
+  }
+});
+
+copyBtn.addEventListener('click', () => {
+  const dados = coletarDadosValidados();
+  navigator.clipboard.writeText(JSON.stringify(dados, null, 2)).catch(() => {});
+  copyBtn.textContent = 'OK!';
+  setTimeout(() => copyBtn.textContent = '{}', 1400);
+});
+</script>
+</body>
+</html>
