@@ -334,6 +334,19 @@ const FIELD_GROUPS = [
     ]
   },
   {
+    title: 'Dados para o contrato (preencher manualmente)',
+    fields: [
+      {key:'nacionalidade', label:'Nacionalidade', manual:true},
+      {key:'funcao', label:'Função', manual:true},
+      {key:'numero_ctps', label:'Número da CTPS', manual:true},
+      {key:'serie_ctps', label:'Série da CTPS', manual:true},
+      {key:'desconto_alimentacao', label:'Desconto alimentação (R$)', manual:true},
+      {key:'horario_seg_qui', label:'Horário (seg. a qui.)', manual:true},
+      {key:'horario_sexta', label:'Horário (sexta)', manual:true},
+      {key:'representante_legal', label:'Representante legal (assina pelo empregador)', manual:true, full:true}
+    ]
+  },
+  {
     title: 'Vínculo e lotação (preencher manualmente)',
     fields: [
       {key:'codigo_empregado', label:'Código empregado', manual:true},

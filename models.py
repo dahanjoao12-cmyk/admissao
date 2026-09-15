@@ -110,6 +110,16 @@ class DadosAdmissao(BaseModel):
     ddd_contato_2: str = ""
     contato_2: str = ""
 
+    # --- Só para o texto do contrato (não vão pro arquivo do Domínio) ---
+    nacionalidade: str = ""
+    numero_ctps: str = ""
+    serie_ctps: str = ""
+    funcao: str = ""
+    desconto_alimentacao: str = ""
+    horario_seg_qui: str = ""
+    horario_sexta: str = ""
+    representante_legal: str = ""
+
 
 class GerarArquivosResponse(BaseModel):
     job_id: str

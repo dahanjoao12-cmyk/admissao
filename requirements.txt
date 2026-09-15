@@ -6,3 +6,4 @@ pydantic==2.10.3
 python-multipart==0.0.19
 python-dotenv==1.0.1
 tzdata==2025.2
+num2words==0.5.13

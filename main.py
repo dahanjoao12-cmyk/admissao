@@ -6,6 +6,7 @@ import shutil
 import unicodedata
 import uuid
 from datetime import date, datetime, timedelta
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import List
 from zoneinfo import ZoneInfo
@@ -16,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from docx import Document
+from num2words import num2words
 
 from models import CAMPOS_ADMISSAO, DadosAdmissao, GerarArquivosResponse
 
@@ -238,6 +240,44 @@ def _juntar(*partes: str, sep: str = " ") -> str:
     return sep.join(p for p in partes if p)
 
 
+ESTADO_CIVIL_EXTENSO = {
+    "S": "solteiro(a)",
+    "C": "casado(a)",
+    "V": "viúvo(a)",
+    "D": "divorciado(a)",
+    "O": "em regime de concubinato",
+    "J": "separado(a) judicialmente",
+    "U": "em união estável",
+}
+
+MESES_PT = [
+    "", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
+    "agosto", "setembro", "outubro", "novembro", "dezembro",
+]
+
+
+def _formatar_moeda_brl(valor_str: str) -> str:
+    try:
+        valor = Decimal(str(valor_str).replace(",", "."))
+    except (InvalidOperation, ValueError):
+        return ""
+    texto = f"{valor:,.2f}"
+    return texto.replace(",", "_").replace(".", ",").replace("_", ".")
+
+
+def _valor_por_extenso_reais(valor_str: str) -> str:
+    try:
+        valor = Decimal(str(valor_str).replace(",", "."))
+    except (InvalidOperation, ValueError):
+        return ""
+    reais = int(valor)
+    centavos = int(round((valor - reais) * 100))
+    partes = [f"{num2words(reais, lang='pt_BR')} {'real' if reais == 1 else 'reais'}"]
+    if centavos:
+        partes.append(f"{num2words(centavos, lang='pt_BR')} {'centavo' if centavos == 1 else 'centavos'}")
+    return " e ".join(partes)
+
+
 def _montar_campos_combinados(dados: DadosAdmissao) -> dict:
     """Strings de exibição (para o contrato), combinando os campos estruturados."""
     endereco_linha1 = _juntar(
@@ -256,10 +296,17 @@ def _montar_campos_combinados(dados: DadosAdmissao) -> dict:
         ]
         if p
     )
+    hoje = datetime.now(BRASILIA_TZ)
     return {
         "endereco_completo": endereco_completo,
         "naturalidade": _juntar(dados.naturalidade_cidade, dados.naturalidade_uf, sep="/"),
         "rg_orgao_uf": _juntar(dados.rg_orgao_emissor, dados.rg_uf_emissor, sep="/"),
+        "estado_civil_extenso": ESTADO_CIVIL_EXTENSO.get(dados.estado_civil, ""),
+        "salario_formatado": _formatar_moeda_brl(dados.salario),
+        "salario_extenso": _valor_por_extenso_reais(dados.salario),
+        "dia_assinatura": str(hoje.day),
+        "mes_assinatura": MESES_PT[hoje.month],
+        "ano_assinatura": str(hoje.year),
     }
 
 
