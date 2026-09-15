@@ -177,6 +177,9 @@
   .field-flag{
     font-size:11.5px;color:var(--warn);margin-top:6px;display:flex;align-items:center;gap:4px; font-weight: 500;
   }
+  .field-hint{
+    font-size:11.5px;color:var(--accent);margin:6px 0 0;font-weight:500;min-height:1em;
+  }
 
   .field-group{margin-bottom:8px;}
   .field-group-title{
@@ -300,7 +303,7 @@ const FIELD_GROUPS = [
       {key:'nome_completo', label:'Nome completo', full:true},
       {key:'cpf', label:'CPF'},
       {key:'data_nascimento', label:'Data de nascimento'},
-      {key:'sexo', label:'Sexo'},
+      {key:'sexo', label:'Sexo', hint:true},
       {key:'naturalidade_cidade', label:'Naturalidade (cidade)'},
       {key:'naturalidade_uf', label:'Naturalidade (UF)'}
     ]
@@ -308,7 +311,7 @@ const FIELD_GROUPS = [
   {
     title: 'Documento de identidade (RG)',
     fields: [
-      {key:'rg', label:'RG'},
+      {key:'rg', label:'RG', hint:true},
       {key:'rg_orgao_emissor', label:'Órgão emissor'},
       {key:'rg_uf_emissor', label:'UF emissor'},
       {key:'rg_data_emissao', label:'Data de expedição'}
@@ -619,6 +622,7 @@ function renderResults(parsed){
       field.innerHTML = `
         <label>${def.label}</label>
         <div class="field-input-wrap">${controle}</div>
+        ${def.hint ? `<p class="field-hint" id="hint-${def.key}"></p>` : ''}
       `;
       gridEl.appendChild(field);
     });
@@ -628,6 +632,48 @@ function renderResults(parsed){
   });
 
   ativarCalculoVencimentoFerias();
+  ativarDicasDeCampo();
+}
+
+// Traduz, em tempo real, o que a IA escreveu para o valor que de fato vai pro
+// arquivo do Domínio — assim o RH bate o olho e entende o que está sendo
+// feito, sem precisar abrir o arquivo de conferência depois.
+function mapearSexoDominio(sexo){
+  const s = (sexo || '').trim().toLowerCase();
+  if (s.startsWith('m')) return 'M';
+  if (s.startsWith('f')) return 'F';
+  return '';
+}
+
+function ativarDicasDeCampo(){
+  const campoSexo = document.getElementById('field-sexo');
+  const hintSexo = document.getElementById('hint-sexo');
+  if (campoSexo && hintSexo) {
+    const atualizar = () => {
+      const codigo = mapearSexoDominio(campoSexo.value);
+      hintSexo.textContent = codigo ? `→ Domínio: ${codigo}` : '';
+    };
+    campoSexo.addEventListener('input', atualizar);
+    atualizar();
+  }
+
+  const campoRg = document.getElementById('field-rg');
+  const campoCpf = document.getElementById('field-cpf');
+  const hintRg = document.getElementById('hint-rg');
+  if (campoRg && campoCpf && hintRg) {
+    const atualizar = () => {
+      if (campoRg.value.trim()) {
+        hintRg.textContent = '';
+      } else if (campoCpf.value.trim()) {
+        hintRg.textContent = `→ RG vazio: o Domínio vai usar o CPF (${campoCpf.value.trim()}) como Identidade`;
+      } else {
+        hintRg.textContent = '→ RG vazio: preencha o CPF para usá-lo como Identidade no Domínio';
+      }
+    };
+    campoRg.addEventListener('input', atualizar);
+    campoCpf.addEventListener('input', atualizar);
+    atualizar();
+  }
 }
 
 // Vencimento das férias = data de admissão + 1 ano - 1 dia (regra do próprio
