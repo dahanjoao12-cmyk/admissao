@@ -165,13 +165,14 @@
     display:block;font-size:12.5px;color:var(--ink-muted);margin-bottom:6px; font-weight: 500;
   }
   .field-input-wrap{position:relative;}
-  .field input{
+  .field input, .field select{
     width:100%;border:1px solid var(--border);border-radius:8px;
     padding:10px 12px;font-size:13.5px;color:var(--ink);
     font-family:'IBM Plex Mono',monospace;background:var(--bg);
     transition: border-color 0.15s;
   }
-  .field input:focus{outline:none;border-color:var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft);}
+  .field select{font-family:'Inter',sans-serif;font-size:13px;}
+  .field input:focus, .field select:focus{outline:none;border-color:var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft);}
   .field.warn input{border-color:var(--warn);background:var(--warn-soft);}
   .field-flag{
     font-size:11.5px;color:var(--warn);margin-top:6px;display:flex;align-items:center;gap:4px; font-weight: 500;
@@ -281,6 +282,7 @@
               <a class="download-btn" id="downloadDocx" href="#" download>⬇ Contrato (.docx)</a>
               <a class="download-btn" id="downloadDominio" href="#" download>⬇ Arquivo Domínio (.txt)</a>
             </div>
+            <a class="download-btn" id="downloadConferencia" href="#" download style="background:transparent;color:var(--ink-muted);border:1px solid var(--border-strong);">⬇ Conferência legível (.txt)</a>
           </div>
         </div>
       </div>
@@ -330,6 +332,156 @@ const FIELD_GROUPS = [
       {key:'endereco_uf', label:'UF'},
       {key:'endereco_cep', label:'CEP'}
     ]
+  },
+  {
+    title: 'Vínculo e lotação (preencher manualmente)',
+    fields: [
+      {key:'codigo_empregado', label:'Código empregado', manual:true},
+      {key:'codigo_filial', label:'Código filial', manual:true},
+      {key:'codigo_servico', label:'Código serviço', manual:true},
+      {key:'codigo_cargo', label:'Código cargo', manual:true},
+      {key:'codigo_departamento', label:'Código departamento', manual:true},
+      {key:'codigo_centro_custos', label:'Centro de custos', manual:true},
+      {key:'codigo_convenio_coletivo', label:'Convenção coletiva', manual:true},
+      {key:'codigo_sindicato_cadastro', label:'Sindicato (cadastro)', manual:true}
+    ]
+  },
+  {
+    title: 'Contrato e admissão (preencher manualmente)',
+    fields: [
+      {key:'salario', label:'Salário', manual:true},
+      {key:'data_admissao', label:'Data de admissão', manual:true},
+      {key:'codigo_esocial_empregado', label:'Código eSocial', manual:true},
+      {key:'vinculo_empregaticio', label:'Vínculo empregatício', manual:true, full:true, options:[
+        ['0','Não aparece no SEFIP'],['1','Celetista'],['2','Estatutário'],['3','Trabalhador Avulso'],
+        ['4','Trabalhador Temporário Lei 6.019/74'],['5','Celetista Contrato Prazo Determinado'],
+        ['6','Trabalhador Rural'],['7','Diretor s/ Vínculo c/ FGTS'],['8','Servidor Público não Efetivo'],
+        ['9','Trab. Rural Contrato Prazo Determinado'],['10','Contrato Prazo Determinado Lei 9.601/98'],
+        ['11','Diretor sem vínculo, SEM FGTS'],['13','Autônomo'],['14','Aut. Classe 14'],['15','Transp. 15'],
+        ['16','Transp. Classe 16'],['17','Cooperado'],['18','Transportador cooperado'],
+        ['22','Contrib. indiv. contratado por contrib. indiv'],
+        ['23','Contrib. indiv. transportador aut. contratado por contrib. indiv.'],
+        ['24','Cooperado que presta serv. para entidade beneficente'],
+        ['25','Transp. cooperado que presta serv. para entidade beneficente'],
+        ['50','Estagiário'],['51','Contrato Experiência'],['52','Empregado Doméstico'],
+        ['53','Menor Aprendiz'],['54','Empregado Doméstico Regime Tempo Parcial'],
+        ['99','Celetista regime tempo parcial']
+      ]},
+      {key:'categoria', label:'Categoria', manual:true, options:[
+        ['1','Mensalista'],['3','Semanalista'],['4','Diarista'],['5','Horista'],
+        ['6','Tarefeiro'],['7','Comissionado'],['8','Diretor']
+      ]},
+      {key:'tipo_indicativo_admissao', label:'Tipo indicativo admissão', manual:true, options:[
+        ['1','1º emprego'],['2','Normal'],['3','Decorrente de ação fiscal'],['4','Decorrente de decisão judicial']
+      ]},
+      {key:'tipo_admissao', label:'Tipo de admissão', manual:true, options:[
+        ['1','Admissão'],['2','Admissão por sucessão/incorporação/fusão'],
+        ['3','Transferência com ônus'],['4','Transferência sem ônus'],['5','Reintegração']
+      ]},
+      {key:'codigo_categoria_esocial', label:'Código categoria eSocial', manual:true},
+      {key:'atividade_simples_nacional', label:'Atividade simples nacional', manual:true, full:true, options:[
+        ['1','Não optante'],['2','Optante enquadrada nos anexos I a III e V'],
+        ['3','Optante enquadrada no anexo IV'],['4','Optante com atividades concomitantes']
+      ]}
+    ]
+  },
+  {
+    title: 'Jornada de trabalho (preencher manualmente)',
+    fields: [
+      {key:'horas_dia', label:'Horas por dia', manual:true},
+      {key:'horas_semana', label:'Horas por semana', manual:true},
+      {key:'horas_mes', label:'Horas por mês', manual:true},
+      {key:'codigo_jornada', label:'Código da jornada', manual:true},
+      {key:'forma_calculo_pagamento', label:'Forma de cálculo', manual:true, options:[['1','Por mês'],['2','Por semana']]},
+      {key:'forma_pagamento', label:'Forma de pagamento', manual:true, options:[['C','Crédito CC'],['D','Dinheiro'],['H','Cheque']]},
+      {key:'vencimento_ferias', label:'Vencimento das férias', manual:true}
+    ]
+  },
+  {
+    title: 'FGTS e sindicato (preencher manualmente)',
+    fields: [
+      {key:'optante_fgts', label:'Optante do FGTS', manual:true, options:[['N','Não'],['S','Sim']]},
+      {key:'data_opcao_fgts', label:'Data opção FGTS', manual:true},
+      {key:'ocorrencia_sefip', label:'Ocorrência SEFIP', manual:true, full:true, options:[
+        ['0','Nunca teve agente nocivo'],['1','01 - Não exposto a agente nocivo'],
+        ['2','02 - Exp. agente nocivo (Apo. Esp. 15 anos)'],['3','03 - Exp. agente nocivo (Apo. Esp. 20 anos)'],
+        ['4','04 - Exp. agente nocivo (Apo. Esp. 25 anos)'],['5','05 - Não exposto a agente nocivo'],
+        ['6','06 - Exp. agente nocivo (Apo. Esp. 15 anos)'],['7','07 - Exp. agente nocivo (Apo. Esp. 20 anos)'],
+        ['8','08 - Exp. agente nocivo (Apo. Esp. 25 anos)']
+      ]},
+      {key:'multiplos_vinculos', label:'Múltiplos vínculos', manual:true, options:[
+        ['B','Sim, abaixo do teto'],['D','Sim, neste banco'],['N','Não'],['T','Sim, acima do teto']
+      ]},
+      {key:'pagou_contribuicao_sindical', label:'Pagou contr. sindical', manual:true, options:[
+        ['L','Prof. Liberal'],['N','Não'],['S','Sim'],['X','Não pagar']
+      ]}
+    ]
+  },
+  {
+    title: 'Dados bancários (preencher manualmente)',
+    fields: [
+      {key:'codigo_banco', label:'Código do banco', manual:true},
+      {key:'conta_corrente', label:'Conta corrente', manual:true},
+      {key:'digito_conta', label:'Dígito da conta', manual:true},
+      {key:'tipo_conta', label:'Tipo de conta', manual:true, options:[
+        ['1','Não informada'],['2','Conta corrente'],['3','Conta salário'],['4','Conta poupança']
+      ]}
+    ]
+  },
+  {
+    title: 'Contrato de experiência, se houver (preencher manualmente)',
+    fields: [
+      {key:'contrato_experiencia', label:'Contrato de experiência?', manual:true, options:[['0','Não possui'],['1','Possui']]},
+      {key:'clausula_assecuratoria', label:'Cláusula assecuratória', manual:true, full:true, options:[
+        ['1','Regido pelo art. 479/480 CLT ou sem cláusula'],['2','Regido pelo art. 481 CLT']
+      ]},
+      {key:'dias_contrato_experiencia', label:'Dias do contrato de experiência', manual:true},
+      {key:'inicio_prazo_determinado', label:'Início do prazo determinado', manual:true},
+      {key:'fim_prazo_determinado', label:'Fim do prazo determinado', manual:true},
+      {key:'dias_prorrogacao', label:'Dias de prorrogação', manual:true},
+      {key:'prorrogacao_prazo_determinado', label:'Data de prorrogação', manual:true},
+      {key:'motivo_prorrogacao', label:'Motivo da prorrogação', manual:true, full:true}
+    ]
+  },
+  {
+    title: 'Dados complementares (preencher manualmente)',
+    fields: [
+      {key:'grau_instrucao', label:'Grau de instrução', manual:true, full:true, options:[
+        ['1','Analfabeto'],['2','Primário incompleto'],['3','Primário completo'],['4','Ginásio incompleto'],
+        ['5','Ginásio completo'],['6','2º grau incompleto'],['7','2º grau completo'],['8','Superior incompleto'],
+        ['9','Superior completo'],['10','Mestrado'],['11','Doutorado'],['12','PhD'],['13','Pós-graduação']
+      ]},
+      {key:'deficiente_fisico', label:'Deficiente físico', manual:true, options:[['0','Não'],['1','Sim']]},
+      {key:'situacao_qualificacao_cadastral', label:'Qualificação cadastral INSS/RF', manual:true, options:[['0','Não qualificado'],['1','Qualificado']]},
+      {key:'raca_cor', label:'Raça/Cor', manual:true, options:[
+        ['0','Indígena'],['2','Branca'],['4','Preta'],['6','Amarela'],['8','Parda'],['9','Não informada']
+      ]},
+      {key:'estado_civil', label:'Estado civil', manual:true, options:[
+        ['S','Solteiro'],['C','Casado'],['V','Viúvo'],['D','Divorciado'],['O','Concubinato'],
+        ['J','Separado judicialmente'],['U','União estável']
+      ]},
+      {key:'recebia_seguro_desemprego', label:'Recebia seguro desemprego', manual:true, options:[['0','Não'],['1','Sim']]},
+      {key:'tipo_endereco', label:'Tipo de endereço', manual:true, full:true, options:[
+        ['1','Aeroporto'],['2','Alameda'],['3','Área'],['4','Avenida'],['5','Campo'],['6','Chácara'],
+        ['7','Colônia'],['8','Condomínio'],['9','Conjunto'],['10','Distrito'],['11','Esplanada'],
+        ['12','Estação'],['13','Estrada'],['14','Favela'],['15','Fazenda'],['16','Feira'],['17','Jardim'],
+        ['18','Ladeira'],['19','Lago'],['20','Lagoa'],['21','Largo'],['22','Loteamento'],['23','Morro'],
+        ['24','Núcleo'],['25','Parque'],['26','Passarela'],['27','Pátio'],['28','Praça'],['29','Quadra'],
+        ['30','Recanto'],['31','Residencial'],['32','Rodovia'],['33','Rua'],['34','Setor'],['35','Sítio'],
+        ['36','Travessa'],['37','Trecho'],['38','Trevo'],['40','Vereda'],['41','Via'],['42','Viaduto'],
+        ['43','Viela'],['44','Vila'],['49','Vale'],['99','Outro']
+      ]}
+    ]
+  },
+  {
+    title: 'Contato (preencher manualmente)',
+    fields: [
+      {key:'email', label:'E-mail', manual:true, full:true},
+      {key:'ddd_telefone', label:'DDD telefone', manual:true},
+      {key:'telefone', label:'Telefone', manual:true},
+      {key:'ddd_contato_2', label:'DDD contato 2', manual:true},
+      {key:'contato_2', label:'Contato 2', manual:true}
+    ]
   }
 ];
 const FIELD_DEFS = FIELD_GROUPS.flatMap(group => group.fields);
@@ -349,6 +501,7 @@ const generateBtn = document.getElementById('generateBtn');
 const workflowFinal = document.getElementById('workflowFinal');
 const downloadDocx = document.getElementById('downloadDocx');
 const downloadDominio = document.getElementById('downloadDominio');
+const downloadConferencia = document.getElementById('downloadConferencia');
 
 dropzone.addEventListener('click', () => fileInput.click());
 ['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
@@ -435,20 +588,57 @@ function renderResults(parsed){
     gridEl.className = 'fields-grid';
 
     group.fields.forEach(def => {
-      const isMissing = !parsed[def.key];
+      const valor = parsed[def.key] || '';
+      const isMissing = !def.manual && !valor;
       const field = document.createElement('div');
       field.className = 'field' + (def.full ? ' full' : '') + (isMissing ? ' warn' : '');
+
+      let controle;
+      if (def.options) {
+        const opcoes = ['<option value="">—</option>'].concat(
+          def.options.map(([v, l]) => `<option value="${v}"${v === valor ? ' selected' : ''}>${v} — ${l}</option>`)
+        ).join('');
+        controle = `<select id="field-${def.key}">${opcoes}</select>`;
+      } else {
+        controle = `<input id="field-${def.key}" value="${valor.replace(/"/g,'&quot;')}" placeholder="${isMissing ? 'Preencha manualmente' : (def.manual ? 'Opcional' : '')}">`;
+      }
+
       field.innerHTML = `
         <label>${def.label}</label>
-        <div class="field-input-wrap">
-          <input id="field-${def.key}" value="${(parsed[def.key] || '').replace(/"/g,'&quot;')}" placeholder="${isMissing ? 'Preencha manualmente' : ''}">
-        </div>
+        <div class="field-input-wrap">${controle}</div>
       `;
       gridEl.appendChild(field);
     });
 
     groupEl.appendChild(gridEl);
     fieldsGrid.appendChild(groupEl);
+  });
+
+  ativarCalculoVencimentoFerias();
+}
+
+// Vencimento das férias = data de admissão + 1 ano - 1 dia (regra do próprio
+// dicionário de campos do Domínio). Só preenche sozinho enquanto o RH não
+// tiver digitado algo manualmente naquele campo.
+function ativarCalculoVencimentoFerias(){
+  const campoAdmissao = document.getElementById('field-data_admissao');
+  const campoFerias = document.getElementById('field-vencimento_ferias');
+  if (!campoAdmissao || !campoFerias) return;
+
+  campoAdmissao.addEventListener('input', () => {
+    if (campoFerias.dataset.editadoManualmente === 'true') return;
+    const m = campoAdmissao.value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!m) return;
+    const data = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+    data.setFullYear(data.getFullYear() + 1);
+    data.setDate(data.getDate() - 1);
+    const dd = String(data.getDate()).padStart(2, '0');
+    const mm = String(data.getMonth() + 1).padStart(2, '0');
+    campoFerias.value = `${dd}/${mm}/${data.getFullYear()}`;
+  });
+
+  campoFerias.addEventListener('input', () => {
+    campoFerias.dataset.editadoManualmente = 'true';
   });
 }
 
@@ -483,6 +673,7 @@ generateBtn.addEventListener('click', async () => {
     }
     downloadDocx.href = data.docx_url;
     downloadDominio.href = data.dominio_url;
+    downloadConferencia.href = data.conferencia_url;
     generateBtn.style.display = 'none';
     copyBtn.style.display = 'none';
     workflowFinal.style.display = 'flex';
