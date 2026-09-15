@@ -192,7 +192,7 @@ async def extrair_dados(documentos: List[UploadFile] = File(...)):
     try:
         response = client.messages.create(
             model=ANTHROPIC_MODEL,
-            max_tokens=1024,
+            max_tokens=2048,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": content_blocks}],
         )
@@ -206,9 +206,13 @@ async def extrair_dados(documentos: List[UploadFile] = File(...)):
     try:
         dados_brutos = _extract_json(texto_resposta)
     except (ValueError, json.JSONDecodeError):
+        preview = texto_resposta.strip()[:500] or "(resposta vazia)"
         raise HTTPException(
             status_code=502,
-            detail="A IA retornou uma resposta que não pôde ser interpretada como JSON.",
+            detail=(
+                "A IA retornou uma resposta que não pôde ser interpretada como JSON "
+                f"(stop_reason={response.stop_reason}). Resposta recebida: {preview}"
+            ),
         )
 
     dados = DadosAdmissao(**{k: dados_brutos.get(k, "") or "" for k in CAMPOS_ADMISSAO})
