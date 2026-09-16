@@ -232,7 +232,7 @@
 <body>
 <div class="wrap">
   <header>
-    <img src="/assets/logo-header.png" alt="Moreira & Castro — Assessoria Contábil" class="brand-logo">
+    <img src="assets/logo-header.png" alt="Moreira & Castro — Assessoria Contábil" class="brand-logo">
     <p class="eyebrow">Automação de Admissão</p>
     <h1>Leitura de Documentos & Integração</h1>
     <p class="sub">Envie os documentos, valide os dados extraídos pela IA, gere os contratos automaticamente e baixe o arquivo de importação do Domínio.</p>
@@ -566,7 +566,7 @@ extractBtn.addEventListener('click', async () => {
   state.files.forEach(entry => formData.append('documentos', entry.file, entry.file.name));
 
   try {
-    const resp = await fetch('/api/extrair', { method: 'POST', body: formData });
+    const resp = await fetch('api/extrair', { method: 'POST', body: formData });
     const data = await resp.json();
     if (!resp.ok) {
       throw new Error(data.detail || 'Falha ao extrair dados.');
@@ -721,7 +721,7 @@ generateBtn.addEventListener('click', async () => {
   generateBtn.disabled = true;
 
   try {
-    const resp = await fetch('/api/gerar', {
+    const resp = await fetch('api/gerar', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(dados)

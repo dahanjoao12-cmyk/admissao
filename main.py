@@ -541,11 +541,14 @@ async def gerar_arquivos(dados: DadosAdmissao):
 
     JOBS_META[job_id] = {"base_nome": base_nome}
 
+    # URLs relativas (sem "/" na frente) de propósito: assim funcionam tanto na
+    # raiz do domínio (Render, IP direto) quanto atrás de um proxy reverso numa
+    # sub-rota (ex: portalmoreiraecastro.com.br/admissao/).
     return GerarArquivosResponse(
         job_id=job_id,
-        docx_url=f"/api/download/{job_id}/docx",
-        dominio_url=f"/api/download/{job_id}/dominio",
-        conferencia_url=f"/api/download/{job_id}/conferencia",
+        docx_url=f"api/download/{job_id}/docx",
+        dominio_url=f"api/download/{job_id}/dominio",
+        conferencia_url=f"api/download/{job_id}/conferencia",
     )
 
 
